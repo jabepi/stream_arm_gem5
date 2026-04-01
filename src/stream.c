@@ -549,48 +549,32 @@ void checkSTREAMresults ()
 }
 
 #ifdef TUNED
-#include <arm_sve.h>
-#include <stdint.h>
-
 /* stubs for "tuned" versions of the kernels */
 void tuned_STREAM_Copy()
 {
-  for (int64_t i = 0; i < STREAM_ARRAY_SIZE; i += svcntd()) {
-    svbool_t pg = svwhilelt_b64((int64_t)i, (int64_t)STREAM_ARRAY_SIZE);
-    svfloat64_t reg = svld1_f64(pg, &a[i]);
-    svst1_f64(pg, &c[i], reg);
+  for (ssize_t i = 0; i < STREAM_ARRAY_SIZE; i++) {
+    c[i] = a[i];
   }
 }
 
 void tuned_STREAM_Scale(STREAM_TYPE scalar)
 {
-  for (int64_t i = 0; i < STREAM_ARRAY_SIZE; i += svcntd()) {
-    svbool_t pg = svwhilelt_b64((int64_t)i, (int64_t)STREAM_ARRAY_SIZE);
-    svfloat64_t reg = svld1_f64(pg, &c[i]);
-    reg = svmul_x(pg, reg, scalar);
-    svst1_f64(pg, &b[i], reg);
+  for (ssize_t i = 0; i < STREAM_ARRAY_SIZE; i++) {
+    b[i] = scalar * c[i];
   }
 }
 
 void tuned_STREAM_Add()
 {
-  for (int64_t i = 0; i < STREAM_ARRAY_SIZE; i += svcntd()) {
-    svbool_t pg = svwhilelt_b64((int64_t)i, (int64_t)STREAM_ARRAY_SIZE);
-    svfloat64_t reg1 = svld1_f64(pg, &a[i]);
-    svfloat64_t reg2 = svld1_f64(pg, &b[i]);
-    svfloat64_t res = svadd_x(pg, reg1, reg2);
-    svst1_f64(pg, &c[i], res);
+  for (ssize_t i = 0; i < STREAM_ARRAY_SIZE; i++) {
+    c[i] = a[i] + b[i];
   }
 }
 
 void tuned_STREAM_Triad(STREAM_TYPE scalar)
 {
-  for (int64_t i = 0; i < STREAM_ARRAY_SIZE; i += svcntd()) {
-    svbool_t pg = svwhilelt_b64((int64_t)i, (int64_t)STREAM_ARRAY_SIZE);
-    svfloat64_t reg_b = svld1_f64(pg, &b[i]);
-    svfloat64_t reg_c = svld1_f64(pg, &c[i]);
-    svfloat64_t res = svmla_x(pg, reg_b, reg_c, scalar);
-    svst1_f64(pg, &a[i], res);
+  for (ssize_t i = 0; i < STREAM_ARRAY_SIZE; i++) {
+    a[i] = b[i] + scalar * c[i];
   }
 }
 /* end of stubs for the "tuned" versions of the kernels */
