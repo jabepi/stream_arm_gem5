@@ -46,6 +46,29 @@
 # include <float.h>
 # include <limits.h>
 # include <sys/time.h>
+# include <stdint.h>
+
+void m5_dump_reset_stats(uint64_t delay, uint64_t period) {
+#if defined(__aarch64__)
+    register uint64_t x0 __asm__("x0") = delay;
+    register uint64_t x1 __asm__("x1") = period;
+    __asm__ __volatile__ (
+        ".inst 0xFF420110\n\t"
+        : "+r" (x0), "+r" (x1)
+    );
+#endif
+}
+
+void m5_dump_stats(uint64_t delay, uint64_t period) {
+#if defined(__aarch64__)
+    register uint64_t x0 __asm__("x0") = delay;
+    register uint64_t x1 __asm__("x1") = period;
+    __asm__ __volatile__ (
+        ".inst 0xFF410110\n\t"
+        : "+r" (x0), "+r" (x1)
+    );
+#endif
+}
 
 /*-----------------------------------------------------------------------
  * INSTRUCTIONS:
@@ -303,6 +326,8 @@ main()
     
     /*	--- MAIN LOOP --- repeat test cases NTIMES times --- */
 
+    m5_dump_reset_stats(0, 0);
+
     scalar = 3.0;
     for (k=0; k<NTIMES; k++)
 	{
@@ -346,6 +371,8 @@ main()
 #endif
 	times[3][k] = mysecond() - times[3][k];
 	}
+
+    m5_dump_stats(0, 0);
 
     /*	--- SUMMARY --- */
 
